@@ -1672,16 +1672,7 @@ function drawCenterSentence() {
                     // 조동사 부분 - 파란색
                     ctx.fillStyle = '#40b8ff';
                 }
-                ctx.fillText(charPos.char, charPos.x, charPos.currentY);
-            });
-            
-            // "!" 기호 그리기 (복제본 위 10px 위치)
-            ctx.fillStyle = '#FFD600';
-            ctx.textAlign = "center";
-            const exclamationMarkX = clone.originalX + ctx.measureText(clone.combinedText).width / 2;
-            const exclamationMarkY = clone.currentY - 15;
-            ctx.fillText("!", exclamationMarkX, exclamationMarkY);
-            ctx.textAlign = "left"; // 다시 기본값으로 복원
+                ctx.fillText(charPos.char, charPos.x, charPos.currentY);            });
         });
         
         ctx.restore();
