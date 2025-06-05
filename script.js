@@ -1088,17 +1088,20 @@ function updateWordAnimations(currentTime) { // Plural, as it updates all active
 function createQuestionWordClone(animation) {
   if (!animation || !animation.targetWordRect || !animation.charPositions) return;
   
+  // 현재 애니메이션의 고점 위치 계산 (의문사가 현재 도달한 위치)
+  const currentAnimationHighPoint = animation.targetWordRect.y - animation.maxHeight;
+  
   const clone = {
     word: animation.wordText,
     originalX: animation.targetWordRect.x,
-    originalY: animation.targetWordRect.y,
-    targetY: animation.targetWordRect.y - CLONE_OFFSET_Y, // 원본에서 50px 위
-    currentY: animation.targetWordRect.y, // 원본 위치에서 시작
+    originalY: currentAnimationHighPoint, // 고점에서 시작
+    targetY: currentAnimationHighPoint - CLONE_OFFSET_Y, // 고점에서 50px 더 위로
+    currentY: currentAnimationHighPoint, // 고점에서 시작
     charPositions: animation.charPositions.map(cp => ({
       char: cp.char,
       x: cp.x,
-      originalY: cp.originalY,
-      currentY: cp.originalY,
+      originalY: currentAnimationHighPoint, // 모든 문자도 고점에서 시작
+      currentY: currentAnimationHighPoint,
       width: cp.width
     })),
     createdTime: performance.now(),
