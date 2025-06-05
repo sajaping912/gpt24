@@ -1270,9 +1270,64 @@ function findSubjectAnimationForAux(auxAnimation) {
 // --- END: 주어+조동사 복제본 관련 함수들 ---
 // --- END: Word Animation Variables and Functions ---
 
+// 의문사 + 조동사 + 주어 + 동사 패턴 감지 함수
+function isQuestionWordAuxSubjectVerbPattern(sentenceText) {
+  const words = sentenceText.trim().split(" ").filter(w => w.length > 0);
+  console.log("🔍 Pattern detection for:", sentenceText);
+  console.log("🔍 Words:", words);
+  
+  if (words.length < 4) {
+    console.log("❌ Too few words for pattern (need at least 4)");
+    return false;
+  }
+  
+  // 첫 번째 단어가 의문사인지 확인
+  const firstWord = words[0].toLowerCase().replace(/[^a-z0-9']/g, "");
+  if (!isWh(firstWord)) {
+    console.log("❌ First word is not a question word:", firstWord);
+    return false;
+  }
+  
+  // 두 번째 단어가 조동사인지 확인
+  const secondWord = words[1].toLowerCase().replace(/[^a-z0-9']/g, "");
+  if (!isAux(secondWord)) {
+    console.log("❌ Second word is not auxiliary:", secondWord);
+    return false;
+  }
+  
+  // 세 번째 단어가 주어인지 확인 (의문사도 조동사도 동사도 아닌 경우)
+  const thirdWord = words[2].toLowerCase().replace(/[^a-z0-9']/g, "");
+  if (isWh(thirdWord) || isAux(thirdWord) || isVerb(thirdWord)) {
+    console.log("❌ Third word is not a proper subject:", thirdWord);
+    return false;
+  }
+  
+  // 네 번째 단어 이후에 동사가 있는지 확인
+  let hasVerb = false;
+  for (let i = 3; i < words.length; i++) {
+    const word = words[i].toLowerCase().replace(/[^a-z0-9']/g, "");
+    if (isVerb(word) && !isAux(word)) {
+      hasVerb = true;
+      console.log("✅ Found verb at position", i + 1, ":", word);
+      break;
+    }
+  }
+  
+  const result = hasVerb;
+  console.log("🎯 Pattern result:", result ? "MATCHES (clones should be created)" : "NO MATCH (no clones)");
+  return result;
+}
+
 // --- START: New/Modified triggerSentenceWordAnimation Function ---
 function triggerSentenceWordAnimation(sentenceObject, isQuestion, allWordRects, drawingContext, animationStartDelay = 0, enableCloneGeneration = true) {
+  console.log("🚀 triggerSentenceWordAnimation called:");
+  console.log("  - isQuestion:", isQuestion);
+  console.log("  - enableCloneGeneration:", enableCloneGeneration);
+  console.log("  - sentenceObject:", sentenceObject);
+  console.log("  - cloneCreatedForCurrentQuestion:", cloneCreatedForCurrentQuestion);
+  
   if (!isGameRunning || isGamePaused || !sentenceObject || !allWordRects || allWordRects.length === 0) {
+    console.log("❌ Early return due to game state or missing data");
     return;
   }
 
@@ -1284,13 +1339,35 @@ function triggerSentenceWordAnimation(sentenceObject, isQuestion, allWordRects, 
         if (a.lineIndex !== b.lineIndex) return a.lineIndex - b.lineIndex;
         return a.x - b.x;
       });
+    
+    console.log("📝 Relevant word rects count:", relevantWordRects.length);
 
     if (relevantWordRects.length === 0) return;
 
     if (isQuestion) {
+      // 이미 복제본이 생성된 질문인 경우 애니메이션을 다시 시작하지 않음
+      if (cloneCreatedForCurrentQuestion) {
+        console.log("⚠️ Clone already created for current question, skipping animation");
+        return;
+      }
+
+      // 질문 문장 전체 텍스트 구성
+      const fullQuestionText = (sentenceObject.line1 + " " + sentenceObject.line2).trim();
+      console.log("🔍 Full question text:", fullQuestionText);
+      
+      // 패턴 감지를 통해 복제본 생성 허용 여부 결정
+      const shouldAllowClones = isQuestionWordAuxSubjectVerbPattern(fullQuestionText);
+      const finalEnableCloneGeneration = enableCloneGeneration && shouldAllowClones;
+      
+      console.log("🎭 Clone generation decision:");
+      console.log("  - Original enableCloneGeneration:", enableCloneGeneration);
+      console.log("  - Pattern allows clones:", shouldAllowClones);
+      console.log("  - Final enableCloneGeneration:", finalEnableCloneGeneration);
+      
       // 질문 문장 애니메이션 로직 (isPlayBtnQuestionTouched 로직과 유사)
       const firstWordRectToAnimate = relevantWordRects[0];
-      startWordWaveAnimation(firstWordRectToAnimate, drawingContext, enableCloneGeneration);
+      console.log("🎯 Starting animation for first word:", firstWordRectToAnimate.word);
+      startWordWaveAnimation(firstWordRectToAnimate, drawingContext, finalEnableCloneGeneration);
 
       const wordsToAnimateSubsequently = [];
       const firstWordIndexInRects = 0;
@@ -1311,12 +1388,15 @@ function triggerSentenceWordAnimation(sentenceObject, isQuestion, allWordRects, 
           }
         }
       }
+      
+      console.log("⏭️ Words to animate subsequently:", wordsToAnimateSubsequently.length);
 
       if (wordsToAnimateSubsequently.length > 0) {
         setTimeout(() => { // 첫 단어가 정점에 도달할 시간 후 다음 단어들 애니메이션
           if (!isGameRunning || isGamePaused) return;
           wordsToAnimateSubsequently.forEach(rect => {
-            startWordWaveAnimation(rect, drawingContext, enableCloneGeneration);
+            console.log("🎯 Starting animation for subsequent word:", rect.word);
+            startWordWaveAnimation(rect, drawingContext, finalEnableCloneGeneration);
           });
         }, WORD_ANIM_DURATION_UP);
       }
