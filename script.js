@@ -2046,43 +2046,39 @@ function updateFireworks() {
             
             // 새로운 답변 설정 시 복제본 생성 플래그 리셋
             cloneCreatedForCurrentAnswer = false;
-        }
-        centerAlpha = 1.0;
+        }        centerAlpha = 1.0;
         fireworks = null; fireworksState = null; sentenceActive = false;
         if (activeWordTranslation) activeWordTranslation.show = false;
-        activeWordTranslation = null; if (wordTranslationTimeoutId) clearTimeout(wordTranslationTimeoutId);
-
+        activeWordTranslation = null; if (wordTranslationTimeoutId) clearTimeout(wordTranslationTimeoutId);        // 폭발 후 자동 오디오 재생 (복제본 생성 없음)
+        console.log("DEBUG: Checking auto audio playback - playAudioForThisSentence:", playAudioForThisSentence);
         if (playAudioForThisSentence) {
             let audioIndexToPlay = null;
-            let sentenceObjectForAnimation = null;
-            let isQuestionForAnimation = false;
 
             if (roleOfNewSentence === 'question' && currentQuestionSentenceIndex !== null) {
                 audioIndexToPlay = currentQuestionSentenceIndex;
-                sentenceObjectForAnimation = currentQuestionSentence;
-                isQuestionForAnimation = true;
+                console.log("DEBUG: Auto audio for question, index:", audioIndexToPlay);
             } else if (roleOfNewSentence === 'answer' && currentAnswerSentenceIndex !== null) {
                 audioIndexToPlay = currentAnswerSentenceIndex;
-                sentenceObjectForAnimation = currentAnswerSentence;
-                isQuestionForAnimation = false;
+                console.log("DEBUG: Auto audio for answer, index:", audioIndexToPlay);
             }
 
-            if (audioIndexToPlay !== null && sentenceObjectForAnimation) {
+            if (audioIndexToPlay !== null) {
+                console.log("DEBUG: Setting auto audio timeout for index:", audioIndexToPlay);
                 setTimeout(() => {
-                    window.speechSynthesis.cancel();                    playSentenceAudio(audioIndexToPlay)
+                    console.log("DEBUG: Auto audio timeout triggered, playing audio for index:", audioIndexToPlay);
+                    window.speechSynthesis.cancel();
+                    playSentenceAudio(audioIndexToPlay)
                         .then(() => {
-                            triggerSentenceWordAnimation(
-                                sentenceObjectForAnimation,
-                                isQuestionForAnimation,
-                                centerSentenceWordRects,
-                                ctx,
-                                300,
-                                false // 자동 재생이므로 복제본 생성 금지
-                            );
+                            // 오디오만 재생, 복제본 생성 없음
+                            console.log("Auto audio playback completed for sentence:", audioIndexToPlay);
                         })
-                        .catch(err => console.error(`Error playing sentence audio for index ${audioIndexToPlay} from fireworks:`, err));
-                }, 300);
+                        .catch(err => console.error("Error in auto audio playback:", err));
+                }, 450);
+            } else {
+                console.log("DEBUG: No audio index to play");
             }
+        } else {
+            console.log("DEBUG: Auto audio playback disabled");
         }
     }
   }
