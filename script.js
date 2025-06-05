@@ -1288,15 +1288,30 @@ function isQuestionWordAuxSubjectVerbPattern(sentenceText) {
     return false;
   }
   
-  // 두 번째 단어가 조동사인지 확인
+  // "의문사 + have + 조동사" 패턴 체크 (복제본 생성 안함)
   const secondWord = words[1].toLowerCase().replace(/[^a-z0-9']/g, "");
+  if (secondWord === "have") {
+    const thirdWord = words[2].toLowerCase().replace(/[^a-z0-9']/g, "");
+    if (isAux(thirdWord)) {
+      console.log("❌ Pattern 'question word + have + aux' detected - no clones should be created");
+      return false;
+    }
+  }
+  
+  // 두 번째 단어가 조동사인지 확인
   if (!isAux(secondWord)) {
     console.log("❌ Second word is not auxiliary:", secondWord);
     return false;
   }
   
-  // 세 번째 단어가 주어인지 확인 (의문사도 조동사도 동사도 아닌 경우)
+  // "의문사 + 조동사 + have + PP" 패턴 체크 (복제본 생성 안함)
   const thirdWord = words[2].toLowerCase().replace(/[^a-z0-9']/g, "");
+  if (thirdWord === "have") {
+    console.log("❌ Pattern 'question word + aux + have + PP' detected - no clones should be created");
+    return false;
+  }
+  
+  // 세 번째 단어가 주어인지 확인 (의문사도 조동사도 동사도 아닌 경우)
   if (isWh(thirdWord) || isAux(thirdWord) || isVerb(thirdWord)) {
     console.log("❌ Third word is not a proper subject:", thirdWord);
     return false;
