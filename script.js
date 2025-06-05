@@ -1162,9 +1162,11 @@ function updateQuestionWordClones(currentTime) {
   }
 }
 
-// 의문사 복제본을 수동으로 제거하는 함수
+// 의문사 복제본을 수동으로 제거하는 함수 (주어+조동사 복제본도 함께 제거)
 function clearQuestionWordClones() {
   questionWordClones = [];
+  // 의문사 복제본이 사라질 때 주어+조동사 복제본도 동시에 제거
+  clearSubjectAuxClones();
 }
 
 // --- START: 주어+조동사 복제본 관련 함수들 ---
@@ -2242,15 +2244,13 @@ function resetGameStateForStartStop() {
     if (wordTranslationTimeoutId) { clearTimeout(wordTranslationTimeoutId); wordTranslationTimeoutId = null; }
     centerSentenceWordRects = []; isActionLocked = false;
 
-    // Reset word animations
-    activeAnimations = []; // Clear the array of active animations
-      // 게임 시작/정지 시 의문사 복제본 제거 및 플래그 리셋
-    clearQuestionWordClones();
-    cloneCreatedForCurrentQuestion = false;
-    
-    // 게임 시작/정지 시 주어+조동사 복제본 제거 및 플래그 리셋
-    clearSubjectAuxClones();
-    cloneCreatedForCurrentAnswer = false;
+  // Reset word animations
+  activeAnimations = []; // Clear the array of active animations
+  
+  // 게임 시작/정지 시 의문사 복제본 제거 및 플래그 리셋 (주어+조동사 복제본도 함께 제거됨)
+  clearQuestionWordClones();
+  cloneCreatedForCurrentQuestion = false;
+  cloneCreatedForCurrentAnswer = false;
 }
 
 function startGame() {
@@ -2370,9 +2370,10 @@ function handleCanvasInteraction(clientX, clientY, event) {
       if (activeWordTranslation) activeWordTranslation.show = false;
       if (wordTranslationTimeoutId) clearTimeout(wordTranslationTimeoutId);
       activeWordTranslation = null;
-      isActionLocked = true;      // 답변 플레이 버튼 터치 시 의문사 복제본 제거 및 플래그 리셋
+      isActionLocked = true;      // 답변 플레이 버튼 터치 시 의문사 복제본 제거 및 플래그 리셋 (주어+조동사 복제본도 함께 제거됨)
       clearQuestionWordClones();
       cloneCreatedForCurrentQuestion = false;
+      cloneCreatedForCurrentAnswer = false;
 
       if (currentAnswerSentenceIndex !== null) {
           window.speechSynthesis.cancel();
