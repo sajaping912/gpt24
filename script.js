@@ -1878,12 +1878,18 @@ function startFireworks(sentenceTextForFireworks, globalSentenceIndex, explosion
         currentAnswerSentence = null; currentAnswerSentenceIndex = null;
         showPlayButton = false;
         showTranslationForAnswer = false;
-    }
-
-    if (activeWordTranslation)
+    }    if (activeWordTranslation) activeWordTranslation.show = false;
     activeWordTranslation = null;
-    if (wordTranslationTimeoutId)
+    if (wordTranslationTimeoutId) { clearTimeout(wordTranslationTimeoutId); wordTranslationTimeoutId = null; }
     centerSentenceWordRects = [];
+    
+    // 폭발 시퀀스 시작 시 모든 활성 애니메이션과 기존 복제본들을 정리
+    console.log("🧹 Clearing active animations and existing clones during fireworks start");
+    activeAnimations = [];
+    
+    // 기존 복제본들도 모두 제거하여 이전 문장의 복제본이 남아있지 않도록 함
+    console.log("🧹 Clearing all existing clones to prevent old sentence clones");
+    clearQuestionWordClones(); // 의문사 복제본과 주어+조동사 복제본 모두 제거
 
     const [fireworkLine1, fireworkLine2] = splitSentence(sentenceTextForFireworks, isNewSentenceQuestion);
     const wordsForFireworks = [];
